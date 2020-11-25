@@ -17,18 +17,14 @@ namespace ABF_Scale_Fixer
         public string abfFileName { get { return System.IO.Path.GetFileName(abfPath); } }
         public string abfID { get { return System.IO.Path.GetFileNameWithoutExtension(abfPath); } }
         private readonly int scaleFactorLocation;
+        private readonly int stringsSectionLocation;
         public byte[] bytes { get; private set; }
         public double ScaleFactor { get; private set; }
         public string AdcUnits { get; private set; }
         public readonly string AdcUnitsOriginal;
+        public readonly string StringsOriginalRaw;
 
         const int bytesPerBlock = 512;
-
-        public void SetScaleFactor(double scaleFactor)
-        {
-            byte[] newBytes = BitConverter.GetBytes((Single)scaleFactor);
-            Array.Copy(newBytes, 0, bytes, scaleFactorLocation, newBytes.Length);
-        }
 
         public AbfScaleFixer(string abfPath)
         {
@@ -53,18 +49,33 @@ namespace ABF_Scale_Fixer
             Debug.WriteLine($"AdcUnitsIndex: [{AdcUnitsIndex}]");
 
             // StringsSection is located at the block defined by a 32-bit integer at byte 220
-            int stringsSectionLocation = BitConverter.ToInt32(bytes, 220) * bytesPerBlock;
+            stringsSectionLocation = BitConverter.ToInt32(bytes, 220) * bytesPerBlock;
+            StringsOriginalRaw = Encoding.UTF8.GetString(bytes, stringsSectionLocation, bytesPerBlock);
             Debug.WriteLine($"stringsSectionLocation: [{stringsSectionLocation}]");
 
-            // PLay with the bytes to create an array of indexed strings
-            string rawString = Encoding.UTF8.GetString(bytes, stringsSectionLocation, 512);
-            string[] usefulStrings = rawString.Split('\0').Where(x => !string.IsNullOrEmpty(x)).Skip(3).ToArray();
-
             // the adc units is at the index defined earlier
-            AdcUnits = usefulStrings[AdcUnitsIndex];
-            AdcUnitsOriginal = usefulStrings[AdcUnitsIndex];
+            string[] indexedStrings = StringsOriginalRaw.Split('\0').Where(x => !string.IsNullOrEmpty(x)).Skip(3).ToArray();
+            AdcUnits = indexedStrings[AdcUnitsIndex];
+            AdcUnitsOriginal = indexedStrings[AdcUnitsIndex];
+            Debug.WriteLine($"AdcUnits: [{AdcUnits}]");
             for (int i = 0; i <= AdcUnitsIndex; i++)
-                Debug.WriteLine($"String index [{i}]: \"{usefulStrings[i]}\"");
+                Debug.WriteLine($"String index [{i}]: \"{indexedStrings[i]}\"");
+        }
+
+        public void SetScaleFactor(double scaleFactor)
+        {
+            byte[] newBytes = BitConverter.GetBytes((Single)scaleFactor);
+            Array.Copy(newBytes, 0, bytes, scaleFactorLocation, newBytes.Length);
+        }
+
+        public void SetAdcUnits(string adcUnits)
+        {
+            if (AdcUnitsOriginal.Length != adcUnits.Length)
+                throw new ArgumentException("new units must be same length as old units");
+
+            int offset = StringsOriginalRaw.IndexOf(AdcUnitsOriginal);
+            byte[] newBytes = Encoding.ASCII.GetBytes(adcUnits);
+            Array.Copy(newBytes, 0, bytes, stringsSectionLocation + offset, newBytes.Length);
         }
 
         public void Save(string filePath)
