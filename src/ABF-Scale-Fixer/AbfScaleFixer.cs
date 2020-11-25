@@ -16,58 +16,59 @@ namespace ABF_Scale_Fixer
         public readonly string abfPath;
         public string abfFileName { get { return System.IO.Path.GetFileName(abfPath); } }
         public string abfID { get { return System.IO.Path.GetFileNameWithoutExtension(abfPath); } }
-        private readonly int fInstrumentScaleFactorLocation;
+        private readonly int scaleFactorLocation;
         public byte[] bytes { get; private set; }
         public double ScaleFactor { get; private set; }
+        public string AdcUnits { get; private set; }
+        public readonly string AdcUnitsOriginal;
+
+        const int bytesPerBlock = 512;
 
         public void SetScaleFactor(double scaleFactor)
         {
-            ScaleFactor = scaleFactor;
-            Single newScaleFactor = (Single)scaleFactor;
-            byte[] newBytes = BitConverter.GetBytes(newScaleFactor);
-            Debug.WriteLine($"Writing new scale factor: {newScaleFactor} ({newBytes.Length} bytes)");
-            Array.Copy(newBytes, 0, bytes, fInstrumentScaleFactorLocation, newBytes.Length);
+            byte[] newBytes = BitConverter.GetBytes((Single)scaleFactor);
+            Array.Copy(newBytes, 0, bytes, scaleFactorLocation, newBytes.Length);
         }
 
         public AbfScaleFixer(string abfPath)
         {
-            Debug.WriteLine($"Loading: {abfPath}");
             bytes = System.IO.File.ReadAllBytes(abfPath);
-            Debug.WriteLine($"Read {bytes.Length} bytes");
-            AssertFormatIsABF2(bytes);
-            fInstrumentScaleFactorLocation = GetByteLocationOf_fInstrumentScaleFactor(bytes);
-            ScaleFactor = BitConverter.ToSingle(bytes, fInstrumentScaleFactorLocation);
-            ScaleFactor = Math.Round(ScaleFactor, 5);
-        }
-
-        private static void AssertFormatIsABF2(byte[] bytes)
-        {
             string fileSignature = Encoding.UTF8.GetString(bytes, 0, 4);
             if (fileSignature != "ABF2")
                 throw new ArgumentException("file must be an ABF2 file");
-            else
-                Debug.WriteLine("file is valid ABF2");
-        }
 
-        private int GetByteLocationOf_fInstrumentScaleFactor(byte[] bytes)
-        {
-            int bytesPerBlock = 512;
+            // ADCSection is located at the block defined by a 32-bit integer at byte 92
+            int adcSectionLocation = BitConverter.ToInt32(bytes, 92) * bytesPerBlock;
+            Debug.WriteLine($"adcSectionLocation: [{adcSectionLocation}]");
 
-            // the block location of "ADCSection" noted by a 32-bit integer at byte 92
-            int adcSectionBlock = BitConverter.ToInt32(bytes, 92);
-            Debug.WriteLine($"adcSectionBlock: {adcSectionBlock}");
-            int adcSectionLocation = adcSectionBlock * bytesPerBlock;
-            Debug.WriteLine($"adcSectionLocation: {adcSectionLocation}");
+            // fInstrumentScaleFactor (for Ch0) is a 16-bit floating point 40 bytes into ADCSection
+            scaleFactorLocation = adcSectionLocation + 40;
+            ScaleFactor = BitConverter.ToSingle(bytes, scaleFactorLocation);
+            ScaleFactor = Math.Round(ScaleFactor, 5);
+            Debug.WriteLine($"fInstrumentScaleFactor: [{ScaleFactor}]");
 
-            // fInstrumentScaleFactor is 16-bit floating point (short) 40 bytes into adcSection (assuming channel zero)
-            int location = adcSectionLocation + 40;
-            Debug.WriteLine($"fInstrumentScaleFactor Location: {adcSectionLocation}");
-            return location;
+            // ADC units are in the string section, but at an index defined by lADCUnitsIndex
+            // which is a byte location defined by a 32-bit integer 78 bytes into the ADCSection
+            int AdcUnitsIndex = BitConverter.ToInt32(bytes, adcSectionLocation + 78);
+            Debug.WriteLine($"AdcUnitsIndex: [{AdcUnitsIndex}]");
+
+            // StringsSection is located at the block defined by a 32-bit integer at byte 220
+            int stringsSectionLocation = BitConverter.ToInt32(bytes, 220) * bytesPerBlock;
+            Debug.WriteLine($"stringsSectionLocation: [{stringsSectionLocation}]");
+
+            // PLay with the bytes to create an array of indexed strings
+            string rawString = Encoding.UTF8.GetString(bytes, stringsSectionLocation, 512);
+            string[] usefulStrings = rawString.Split('\0').Where(x => !string.IsNullOrEmpty(x)).Skip(3).ToArray();
+
+            // the adc units is at the index defined earlier
+            AdcUnits = usefulStrings[AdcUnitsIndex];
+            AdcUnitsOriginal = usefulStrings[AdcUnitsIndex];
+            for (int i = 0; i <= AdcUnitsIndex; i++)
+                Debug.WriteLine($"String index [{i}]: \"{usefulStrings[i]}\"");
         }
 
         public void Save(string filePath)
         {
-            Debug.WriteLine($"Writing: {filePath}");
             System.IO.File.WriteAllBytes(filePath, bytes);
         }
     }
