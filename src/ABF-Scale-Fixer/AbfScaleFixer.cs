@@ -7,32 +7,27 @@ using System.Threading.Tasks;
 
 namespace ABF_Scale_Fixer
 {
+    /* This class reads the entire binary content of an ABF file in memory. 
+     * It then notes where the byte locations are for scale factor and ADC units.
+     * Modifcations occur in memory, aand later bytes can be saved to a file.
+     */
     public class AbfScaleFixer
     {
         public readonly string abfPath;
         public string abfFileName { get { return System.IO.Path.GetFileName(abfPath); } }
         public string abfID { get { return System.IO.Path.GetFileNameWithoutExtension(abfPath); } }
-        public double fInstrumentScaleFactor
-        {
-            get
-            {
-                double scaleFactor = BitConverter.ToSingle(bytes, fInstrumentScaleFactorLocation);
-                Debug.WriteLine($"Read scale factor: {scaleFactor}");
-                scaleFactor = Math.Round(scaleFactor, 5);
-                Debug.WriteLine($"Rounded to: {scaleFactor}");
-                return scaleFactor;
-            }
-            set
-            {
-                Single newScaleFactor = (Single)value;
-                byte[] newBytes = BitConverter.GetBytes(newScaleFactor);
-                Debug.WriteLine($"Writing new scale factor: {newScaleFactor} ({newBytes.Length} bytes)");
-                Array.Copy(newBytes, 0, bytes, fInstrumentScaleFactorLocation, newBytes.Length);
-            }
-        }
-
         private readonly int fInstrumentScaleFactorLocation;
-        public byte[] bytes;
+        public byte[] bytes { get; private set; }
+        public double ScaleFactor { get; private set; }
+
+        public void SetScaleFactor(double scaleFactor)
+        {
+            ScaleFactor = scaleFactor;
+            Single newScaleFactor = (Single)scaleFactor;
+            byte[] newBytes = BitConverter.GetBytes(newScaleFactor);
+            Debug.WriteLine($"Writing new scale factor: {newScaleFactor} ({newBytes.Length} bytes)");
+            Array.Copy(newBytes, 0, bytes, fInstrumentScaleFactorLocation, newBytes.Length);
+        }
 
         public AbfScaleFixer(string abfPath)
         {
@@ -41,6 +36,8 @@ namespace ABF_Scale_Fixer
             Debug.WriteLine($"Read {bytes.Length} bytes");
             AssertFormatIsABF2(bytes);
             fInstrumentScaleFactorLocation = GetByteLocationOf_fInstrumentScaleFactor(bytes);
+            ScaleFactor = BitConverter.ToSingle(bytes, fInstrumentScaleFactorLocation);
+            ScaleFactor = Math.Round(ScaleFactor, 5);
         }
 
         private static void AssertFormatIsABF2(byte[] bytes)

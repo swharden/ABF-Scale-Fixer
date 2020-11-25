@@ -35,6 +35,8 @@
             this.label2 = new System.Windows.Forms.Label();
             this.btnRead = new System.Windows.Forms.Button();
             this.btnSave = new System.Windows.Forms.Button();
+            this.textBox1 = new System.Windows.Forms.TextBox();
+            this.label1 = new System.Windows.Forms.Label();
             this.statusStrip1.SuspendLayout();
             this.SuspendLayout();
             // 
@@ -51,9 +53,10 @@
             // 
             this.statusStrip1.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.lblStatus});
-            this.statusStrip1.Location = new System.Drawing.Point(0, 82);
+            this.statusStrip1.Location = new System.Drawing.Point(0, 100);
             this.statusStrip1.Name = "statusStrip1";
-            this.statusStrip1.Size = new System.Drawing.Size(421, 22);
+            this.statusStrip1.Size = new System.Drawing.Size(369, 22);
+            this.statusStrip1.SizingGrip = false;
             this.statusStrip1.TabIndex = 1;
             this.statusStrip1.Text = "statusStrip1";
             // 
@@ -84,9 +87,9 @@
             // btnRead
             // 
             this.btnRead.Enabled = false;
-            this.btnRead.Location = new System.Drawing.Point(243, 38);
+            this.btnRead.Location = new System.Drawing.Point(279, 12);
             this.btnRead.Name = "btnRead";
-            this.btnRead.Size = new System.Drawing.Size(75, 23);
+            this.btnRead.Size = new System.Drawing.Size(75, 34);
             this.btnRead.TabIndex = 4;
             this.btnRead.Text = "Read";
             this.btnRead.UseVisualStyleBackColor = true;
@@ -95,26 +98,47 @@
             // btnSave
             // 
             this.btnSave.Enabled = false;
-            this.btnSave.Location = new System.Drawing.Point(324, 38);
+            this.btnSave.Location = new System.Drawing.Point(279, 52);
             this.btnSave.Name = "btnSave";
-            this.btnSave.Size = new System.Drawing.Size(75, 23);
+            this.btnSave.Size = new System.Drawing.Size(75, 34);
             this.btnSave.TabIndex = 5;
             this.btnSave.Text = "Save As...";
             this.btnSave.UseVisualStyleBackColor = true;
             this.btnSave.Click += new System.EventHandler(this.BtnSave_Click);
+            // 
+            // textBox1
+            // 
+            this.textBox1.Enabled = false;
+            this.textBox1.Location = new System.Drawing.Point(137, 66);
+            this.textBox1.Name = "textBox1";
+            this.textBox1.Size = new System.Drawing.Size(100, 20);
+            this.textBox1.TabIndex = 6;
+            // 
+            // label1
+            // 
+            this.label1.AutoSize = true;
+            this.label1.Location = new System.Drawing.Point(72, 69);
+            this.label1.Name = "label1";
+            this.label1.Size = new System.Drawing.Size(59, 13);
+            this.label1.TabIndex = 7;
+            this.label1.Text = "ADC Units:";
             // 
             // Form1
             // 
             this.AllowDrop = true;
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(421, 104);
+            this.ClientSize = new System.Drawing.Size(369, 122);
+            this.Controls.Add(this.label1);
+            this.Controls.Add(this.textBox1);
             this.Controls.Add(this.btnSave);
             this.Controls.Add(this.btnRead);
             this.Controls.Add(this.label2);
             this.Controls.Add(this.tbScale);
             this.Controls.Add(this.statusStrip1);
             this.Controls.Add(this.lblAbf);
+            this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.FixedSingle;
+            this.MaximizeBox = false;
             this.Name = "Form1";
             this.Text = "ABF Scale Fixer";
             this.Load += new System.EventHandler(this.Form1_Load);
@@ -136,6 +160,8 @@
         private System.Windows.Forms.Label label2;
         private System.Windows.Forms.Button btnRead;
         private System.Windows.Forms.Button btnSave;
+        private System.Windows.Forms.TextBox textBox1;
+        private System.Windows.Forms.Label label1;
     }
 }
 

@@ -51,7 +51,7 @@ namespace ABF_Scale_Fixer
             try
             {
                 fixer = new AbfScaleFixer(abfFilePath);
-                tbScale.Text = fixer.fInstrumentScaleFactor.ToString();
+                tbScale.Text = fixer.ScaleFactor.ToString();
                 lblStatus.Text = $"Loaded ABF2 file: {System.IO.Path.GetFileName(abfFilePath)}";
                 btnRead.Enabled = true;
                 btnSave.Enabled = true;
@@ -75,7 +75,7 @@ namespace ABF_Scale_Fixer
 
         private void BtnSave_Click(object sender, EventArgs e)
         {
-            fixer.fInstrumentScaleFactor = double.Parse(tbScale.Text);
+            fixer.SetScaleFactor(double.Parse(tbScale.Text));
 
             string suggestedFileName = System.IO.Path.GetFileNameWithoutExtension(loadedAbf) + "-fixed.abf";
             SaveFileDialog savefile = new SaveFileDialog();
