@@ -91,7 +91,7 @@
             this.btnRead.Name = "btnRead";
             this.btnRead.Size = new System.Drawing.Size(75, 34);
             this.btnRead.TabIndex = 4;
-            this.btnRead.Text = "Read";
+            this.btnRead.Text = "Reload";
             this.btnRead.UseVisualStyleBackColor = true;
             this.btnRead.Click += new System.EventHandler(this.BtnRead_Click);
             // 
@@ -113,6 +113,7 @@
             this.tbUnits.Name = "tbUnits";
             this.tbUnits.Size = new System.Drawing.Size(100, 20);
             this.tbUnits.TabIndex = 6;
+            this.tbUnits.TextChanged += new System.EventHandler(this.tbUnits_TextChanged);
             // 
             // label1
             // 

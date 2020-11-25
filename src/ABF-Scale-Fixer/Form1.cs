@@ -83,6 +83,7 @@ namespace ABF_Scale_Fixer
         private void BtnSave_Click(object sender, EventArgs e)
         {
             fixer.SetScaleFactor(double.Parse(tbScale.Text));
+            fixer.SetAdcUnits(tbUnits.Text);
 
             string suggestedFileName = System.IO.Path.GetFileNameWithoutExtension(loadedAbf) + "-fixed.abf";
             SaveFileDialog savefile = new SaveFileDialog();
@@ -100,6 +101,11 @@ namespace ABF_Scale_Fixer
         {
             double newScaleFactor;
             btnSave.Enabled = double.TryParse(tbScale.Text, out newScaleFactor);
+        }
+
+        private void tbUnits_TextChanged(object sender, EventArgs e)
+        {
+            btnSave.Enabled = tbUnits.Text.Length == fixer.AdcUnitsOriginal.Length;
         }
     }
 }
