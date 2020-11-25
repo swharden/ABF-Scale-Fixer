@@ -24,6 +24,10 @@ namespace ABF_Scale_Fixer
         {
             var version = typeof(Form1).Assembly.GetName().Version;
             Text = $"ABF Scale Fixer {version.Major}.{version.Minor}";
+
+            string startupFilePath = "../../../../data/opto_aps_bad_units.abf";
+            if (System.IO.File.Exists(startupFilePath))
+                LoadABF(startupFilePath);
         }
 
         private void Form1_DragDrop(object sender, DragEventArgs e)
@@ -52,10 +56,12 @@ namespace ABF_Scale_Fixer
             {
                 fixer = new AbfScaleFixer(abfFilePath);
                 tbScale.Text = fixer.ScaleFactor.ToString();
+                tbUnits.Text = fixer.AdcUnits;
                 lblStatus.Text = $"Loaded ABF2 file: {System.IO.Path.GetFileName(abfFilePath)}";
                 btnRead.Enabled = true;
                 btnSave.Enabled = true;
                 tbScale.Enabled = true;
+                tbUnits.Enabled = true;
             }
             catch
             {
@@ -65,6 +71,7 @@ namespace ABF_Scale_Fixer
                 btnRead.Enabled = false;
                 btnSave.Enabled = false;
                 tbScale.Enabled = false;
+                tbUnits.Enabled = false;
             }
         }
 
